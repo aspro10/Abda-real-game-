@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Abda Game</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>
+  :root{
+    --bg:#0b0f1a;
+    --panel:#0f1724;
+    --accent:#3fe0c3;
+    --muted:#93a0b6;
+    --txt:#e6eef6;
+    --neon-pink: #ff66cc; /* Aggiunto colore neon per l'UI */
+    --neon-blue: #64ffff;
+  }
+  html,body{
+    margin:0;
+    background:var(--bg);
+    color:var(--txt);
+    font-family:Inter,Segoe UI,Roboto,sans-serif;
+    overflow:hidden;
+  }
+  .wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
+    padding:10px;
+    box-sizing:border-box;
+  }
+  canvas{
+    background:#061021;
+    border-radius:8px;
+    image-rendering:pixelated;
+  }
+  .info{
+    text-align:center;
+    margin:5px 0;
+    font-size:16px;
+  }
+  .btns{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-gap:8px;
+    margin-top:10px;
+    width:100%;
+    max-width:320px;
+  }
+  .btns button{
+    background:rgba(255,255,255,.08);
+    border:none;
+    border-radius:10px;
+    padding:14px 0;
+    color:var(--txt);
+    font-size:16px;
+    font-weight:600;
+    letter-spacing:0.5px;
+    cursor: pointer;
+  }
+  .btns2{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-top:8px;
+  }
+  .btns2 button{
+    flex:1;
+    background:rgba(255,255,255,.08);
+    border:none;
+    border-radius:10px;
+    padding:10px 0;
+    color:var(--txt);
+    font-size:15px;
+    font-weight:600;
+    cursor: pointer;
+  }
+  /* Stili Menu Aggiunti */
+  .menu-screen{
+    background:var(--panel);
+    padding:30px;
+    border-radius:15px;
+    max-width:350px;
+    width:100%;
+    box-shadow:0 0 15px rgba(100, 255, 255, 0.4);
+    text-align:center;
+  }
+  .menu-screen h2{
+    color:var(--neon-pink);
+    text-shadow:0 0 5px var(--neon-pink);
+    margin-top:0;
+  }
+  .menu-button {
+    background-color: #4d0099;
+    color: var(--txt);
+    border: 2px solid #cc00ff;
+    padding: 15px 30px;
+    margin: 10px 0;
+    width: 100%;
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 0 5px #cc00ff;
+    transition: background-color 0.3s;
+  }
+  .menu-button:hover {
+    background-color: #cc00ff;
+    color: var(--bg);
+  }
+  .hidden { display: none !important; }
+
+  /* Stili Impostazioni */
+  .setting-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding: 8px;
+    border-bottom: 1px dashed rgba(255,255,255,0.2);
+  }
+  .setting-group label {
+    color: var(--neon-blue);
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  .setting-control {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .input-field {
+    background-color: var(--bg);
+    color: var(--accent);
+    border: 1px solid var(--neon-blue);
+    padding: 8px;
+    border-radius: 4px;
+    flex-grow: 1;
+  }
+  .slider-field {
+    flex-grow: 1;
+  }
+  #music-display, #effects-display {
+    color: var(--accent);
+    min-width: 40px;
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 style="color:var(--neon-blue);text-shadow:0 0 5px var(--neon-blue);">ABDA GAME</h1>
+
+  <section id="main-menu" class="menu-screen">
+    <h2>MENU PRINCIPALE</h2>
+    <button class="menu-button" onclick="showScreen('game-screen'); startGameWrapper();">▶️ Nuovo Gioco</button>
+    <button class="menu-button" onclick="showScreen('settings-menu')">⚙️ Impostazioni</button>
+    <button class="menu-button" onclick="alert('Classifiche non ancora implementate!')">🏆 Classifiche</button>
+    <button class="menu-button" onclick="alert('Grazie per aver giocato ad Abda Game!')">🚪 Esci</button>
+  </section>
+
+  <section id="settings-menu" class="menu-screen hidden">
+    <h2>⚙️ IMPOSTAZIONI</h2>
+
+    <div class="setting-group">
+      <label for="username">👤 Nome Utente:</label>
+      <div class="setting-control">
+        <input type="text" id="username" value="AbdaPlayer" class="input-field" maxlength="15" onchange="saveSettings()">
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>🎵 Volume Musica (0% = No Suono):</label>
+      <div class="setting-control">
+        <input type="range" id="music-volume" min="0" max="100" value="80" class="slider-field" oninput="updateVolumeDisplay('music')" onchange="saveSettings()">
+        <span id="music-display">80%</span>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>🔊 Volume Effetti:</label>
+      <div class="setting-control">
+        <input type="range" id="effects-volume" min="0" max="100" value="100" class="slider-field" oninput="updateVolumeDisplay('effects')" onchange="saveSettings()">
+        <span id="effects-display">100%</span>
+      </div>
+    </div>
+
+    <button class="menu-button" style="margin-top:20px;" onclick="showScreen('main-menu')">⬅️ Torna al Menu</button>
+  </section>
+
+  <section id="game-screen" class="hidden">
+    <div class="info">
+      <div>Giocatore: <span id="current-user"></span></div>
+      <div>Punteggio: <span id="score">0</span> | Livello: <span id="level">1</span></div>
+    </div>
+    <canvas id="board" width="240" height="480"></canvas>
+
+    <div class="btns">
+      <button id="left">←</button>
+      <button id="rotate">⟳</button>
+      <button id="right">→</button>
+      <button id="holdBtn">HOLD</button>
+      <button id="down">↓</button>
+      <button id="drop">DROP</button>
+    </div>
+    <div class="btns2">
+      <button id="start">Nuova</button>
+      <button id="pause">Pausa</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// --- IMPOSTAZIONI GLOBALI DI ABDA GAME ---
+let game_settings = {
+    nome_utente: "AbdaPlayer",
+    musica_volume: 80,
+    effetti_volume: 100
+};
+
+// Funzioni per la gestione dei menu (AGGIUNTE)
+function showScreen(screenId) {
+    document.querySelectorAll('.menu-screen, #game-screen').forEach(el => {
+        el.classList.add('hidden');
+    });
+    document.getElementById(screenId).classList.remove('hidden');
+}
+
+function updateVolumeDisplay(type) {
+    const slider = document.getElementById(type + '-volume');
+    const display = document.getElementById(type + '-display');
+    display.textContent = slider.value + '%';
+}
+
+function saveSettings() {
+    const username = document.getElementById('username').value || 'Giocatore';
+    const musicVolume = parseInt(document.getElementById('music-volume').value);
+    const effectsVolume = parseInt(document.getElementById('effects-volume').value);
+
+    localStorage.setItem('abda_username', username);
+    localStorage.setItem('abda_music_volume', musicVolume);
+    localStorage.setItem('abda_effects_volume', effectsVolume);
+
+    game_settings.nome_utente = username;
+    game_settings.musica_volume = musicVolume;
+    game_settings.effetti_volume = effectsVolume;
+
+    console.log(`Impostazioni salvate: Utente: ${username}, Musica: ${musicVolume}%`);
+}
+
+function loadSettings() {
+    // Carica il nome utente
+    const savedUsername = localStorage.getItem('abda_username');
+    if (savedUsername) {
+        document.getElementById('username').value = savedUsername;
+        game_settings.nome_utente = savedUsername;
+    }
+    document.getElementById('current-user').textContent = game_settings.nome_utente;
+
+
+    // Carica il volume della musica
+    const savedMusicVolume = localStorage.getItem('abda_music_volume');
+    if (savedMusicVolume !== null) {
+        document.getElementById('music-volume').value = savedMusicVolume;
+        document.getElementById('music-display').textContent = savedMusicVolume + '%';
+        game_settings.musica_volume = parseInt(savedMusicVolume);
+    }
+
+    // Carica il volume degli effetti
+    const savedEffectsVolume = localStorage.getItem('abda_effects_volume');
+    if (savedEffectsVolume !== null) {
+        document.getElementById('effects-volume').value = savedEffectsVolume;
+        document.getElementById('effects-display').textContent = savedEffectsVolume + '%';
+        game_settings.effetti_volume = parseInt(savedEffectsVolume);
+    }
+}
+
+function startGameWrapper() {
+    // Aggiorna il nome utente nell'area di gioco prima di iniziare
+    document.getElementById('current-user').textContent = game_settings.nome_utente;
+    start();
+}
+
+
+// --- LOGICA DEL GIOCO TETRIS (Preesistente) ---
+const COLS=10,ROWS=20,BLOCK=24;
+const COLORS={0:"#061021",I:"#55d1e8",J:"#2b76f6",L:"#f5a623",O:"#ffd54f",S:"#4cd97b",T:"#b36cff",Z:"#ff6b6b"};
+const SCORES={0:0,1:100,2:300,3:500,4:800};
+const TETROMINOES={
+I:[[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],[[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]]],
+J:[[[1,0,0],[1,1,1],[0,0,0]],[[0,1,1],[0,1,0],[0,1,0]],[[0,0,0],[1,1,1],[0,0,1]],[[0,1,0],[0,1,0],[1,1,0]]],
+L:[[[0,0,1],[1,1,1],[0,0,0]],[[0,1,0],[0,1,0],[0,1,1]],[[0,0,0],[1,1,1],[1,0,0]],[[1,1,0],[0,1,0],[0,1,0]]],
+O:[[[1,1],[1,1]]],
+S:[[[0,1,1],[1,1,0],[0,0,0]],[[0,1,0],[0,1,1],[0,0,1]]],
+T:[[[0,1,0],[1,1,1],[0,0,0]],[[0,1,0],[0,1,1],[0,1,0]],[[0,0,0],[1,1,1],[0,1,0]],[[0,1,0],[1,1,0],[0,1,0]]],
+Z:[[[1,1,0],[0,1,1],[0,0,0]],[[0,0,1],[0,1,1],[0,1,0]]]
+};
+function createMatrix(c,r,f=0){return Array.from({length:r},()=>Array(c).fill(f))}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;}
+let grid,ctx,current,nextQueue=[],holdPiece=null,canHold=true;
+let score=0,level=1,lines=0,dropInterval=800,dropCounter=0,lastTime=0,running=false,paused=false;
+
+const canvas=document.getElementById("board");
+ctx=canvas.getContext("2d");
+
+function drawCell(x,y,color){ctx.fillStyle=color;ctx.fillRect(x*BLOCK,y*BLOCK,BLOCK-1,BLOCK-1);}
+function draw(){
+ ctx.fillStyle="#061021";ctx.fillRect(0,0,canvas.width,canvas.height);
+ for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x])drawCell(x,y,COLORS[grid[y][x]]);
+ if(current){for(let r=0;r<current.shape.length;r++)for(let c=0;c<current.shape[r].length;c++)if(current.shape[r][c])drawCell(current.x+c,current.y+r,COLORS[current.type]);}
+ document.getElementById("score").textContent=score;
+ document.getElementById("level").textContent=level;
+}
+function newPiece(t){const s=clone(TETROMINOES[t][0]);return{type:t,shape:s,rotation:0,x:Math.floor((COLS-s.length)/2),y:-1}}
+function collide(b,p){const s=p.shape;for(let r=0;r<s.length;r++)for(let c=0;c<s[r].length;c++)if(s[r][c]){const x=p.x+c,y=p.y+r;if(x<0||x>=COLS||y>=ROWS||y>=0&&b[y][x])return true}return false}
+function refill(){const bag=shuffle(Object.keys(TETROMINOES));bag.forEach(t=>nextQueue.push(newPiece(t)))}
+function spawn(){if(nextQueue.length<3)refill();current=nextQueue.shift();canHold=true;if(collide(grid,current)){running=false;gameOver();}}
+function hardDrop(){while(!collide(grid,{...current,y:current.y+1}))current.y++;lock();}
+function lock(){const s=current.shape;for(let r=0;r<s.length;r++)for(let c=0;c<s[r].length;c++)if(s[r][c]){const x=current.x+c,y=current.y+r;if(y>=0&&y<ROWS&&x>=0&&x<COLS)grid[y][x]=current.type;}clearLines();spawn();}
+function clearLines(){let n=0;for(let y=ROWS-1;y>=0;y--){if(grid[y].every(v=>v)){grid.splice(y,1);grid.unshift(Array(COLS).fill(0));n++;y++;}}if(n){lines+=n;score+=SCORES[n]*level;const nl=Math.floor(lines/10)+1;if(nl>level){level=nl;dropInterval=Math.max(100,800-(level-1)*70);}}}
+function move(d){if(!running||paused)return;current.x+=d;if(collide(grid,current))current.x-=d;}
+function drop(){if(!running||paused)return;current.y++;if(collide(grid,current)){current.y--;lock();}}
+function rotate(){if(!running||paused)return;const rots=TETROMINOES[current.type];const next=(current.rotation+1)%rots.length;const ns=clone(rots[next]);const ox=current.x;for(let k of [0,-1,1,-2,2]){current.shape=ns;current.rotation=next;current.x=ox+k;if(!collide(grid,current))return;}current.shape=rots[current.rotation];current.x=ox;}
+function hold(){if(!running||paused)return;if(!canHold)return;if(!holdPiece){holdPiece={type:current.type};spawn();}else{const t=holdPiece.type;holdPiece.type=current.type;current=newPiece(t);current.y=-1;if(collide(grid,current)){running=false;gameOver();}}canHold=false;}
+function update(t=0){if(!running||paused)return;const d=t-lastTime;lastTime=t;dropCounter+=d;if(dropCounter>dropInterval){dropCounter=0;current.y++;if(collide(grid,current)){current.y--;lock();}}draw();requestAnimationFrame(update);}
+function start(){grid=createMatrix(COLS,ROWS,0);nextQueue=[];holdPiece=null;score=0;level=1;lines=0;dropInterval=800;refill();spawn();running=true;paused=false;lastTime=performance.now();requestAnimationFrame(update);}
+function pause(){if(!running)return;paused=!paused;document.getElementById("pause").textContent=paused?"Riprendi":"Pausa";if(!paused){lastTime=performance.now();requestAnimationFrame(update);}}
+function gameOver(){draw();setTimeout(()=>{
+    alert(`Game Over, ${game_settings.nome_utente}! Punteggio: ${score}`);
+    showScreen('main-menu'); // Torna al menu
+},200);}
+document.getElementById("start").onclick=()=>startGameWrapper();
+document.getElementById("pause").onclick=()=>pause();
+document.getElementById("left").onclick=()=>move(-1);
+document.getElementById("right").onclick=()=>move(1);
+document.getElementById("down").onclick=()=>drop();
+document.getElementById("drop").onclick=()=>hardDrop();
+document.getElementById("rotate").onclick=()=>rotate();
+document.getElementById("holdBtn").onclick=()=>hold();
+
+// gesture swipe (opzionale)
+let touchStartX=0,touchStartY=0;
+canvas.addEventListener("touchstart",e=>{
+  if(!running||paused)return;
+  const t=e.touches[0];touchStartX=t.clientX;touchStartY=t.clientY;
+});
+canvas.addEventListener("touchend",e=>{
+  if(!running||paused)return;
+  const t=e.changedTouches[0];
+  const dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;
+  if(Math.abs(dx)>Math.abs(dy)){
+    if(dx>30)move(1);else if(dx<-30)move(-1);
+  }else{
+    if(dy>30)drop();else if(dy<-30)rotate();
+  }
+});
+
+// Inizializzazione all'avvio: carica le impostazioni e mostra il menu principale
+window.onload = () => {
+    loadSettings();
+    showScreen('main-menu');
+    draw(); // Disegna il tabellone vuoto
+};
+</script>
+</body>
+</html>
